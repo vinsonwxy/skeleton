@@ -1,7 +1,4 @@
-import controllers.HelloWorldController;
-import controllers.ReceiptController;
-import controllers.TagController;
-import controllers.NetIdController;
+import controllers.*;
 
 import dao.ReceiptDao;
 import dao.TagDao;
@@ -49,5 +46,6 @@ public class SimpleApplication extends Application<Configuration> {
         env.jersey().register(new ReceiptController(receiptDao));
         env.jersey().register(new TagController(tagDao));
         env.jersey().register(new NetIdController());
+        env.jersey().register(new StaticHtmlController());
     }
 }

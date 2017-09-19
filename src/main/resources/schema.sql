@@ -17,3 +17,10 @@ CREATE TABLE tags (
 
   PRIMARY KEY (id)
 );
+
+CREATE TABLE receipts_tags (
+  id INT,
+  merchant VARCHAR(255),
+  amount DECIMAL(12,2),
+  name VARCHAR(255)
+)
