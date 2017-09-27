@@ -49,8 +49,8 @@
                 for(var i=0; i < receipts.length; i++) {
                     var receipt = receipts[i];
                     if($.inArray(receipt.id, id_seen)==-1) {
-                        $(`<div class="receipt" id="${receipt.id}"><div class="merchant">Merchant: ${receipt.merchantName}</div>
-                        <div class="amount">Amount: ${receipt.value}</div>
+                        $(`<div class="receipt" id="${receipt.id}"><div class="merchant">${receipt.merchantName}</div>
+                        <div class="amount">${receipt.value}</div>
                         <div class="tagsBox">Tags: <button class="add-tag">Add +</button></div></div>`)
                             .appendTo($("#receiptList"));
                         id_seen.push(receipt.id);
@@ -120,17 +120,17 @@
                 $.ajax({
                     type: 'POST',
                     url: '/receipts',
-                    data: JSON.stringify({"merchant":$("#merchant").val(),"amount":$("#amount").val()}),
+                    data: JSON.stringify({merchant:$("#merchant").val(),amount:($("#amount").val())}),
                     contentType: "application/json",
                     dataType: 'json',
                     success: function(data) {
-                        $(`<div class="receipt" id="${data}"><div class="merchant">Merchant: ${$("#merchant").val()}</div>
-                        <div class="amount">Amount: ${$("#amount").val()}</div>
+                        $(`<div class="receipt" id="${data}"><div class="merchant">${$("#merchant").val()}</div>
+                        <div class="amount">${$("#amount").val()}</div>
                         <div class="tagsBox">Tags: <button class="add-tag">Add +</button></div></div>`)
                             .appendTo($("#receiptList"));
                     }
                 });
-
+                $("#addReceiptBox").hide();
             });
         });
 
