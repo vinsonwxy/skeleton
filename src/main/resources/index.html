@@ -2,7 +2,6 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="style.css" />
     <script data-require="jquery@*" data-semver="3.1.1" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <style>
         #container {border: 1px solid black;}
@@ -12,6 +11,7 @@
             background-color:orange;
             border: 1px solid #229;
             border-radius: 10px;
+            height: 40px;
             width: 100px;
             float: right;
             font-size: 2em;
@@ -38,8 +38,25 @@
             margin-bottom: 5px;
         }
 
+        video {
+            width: 550px;
+            height: 450px;
+            border: 1px solid black;
+        }
+
+        #vidwrap {
+            display: none;
+            margin: 20px 0;
+        }
+
+        #take-pic {
+            height: 3em;
+        }
+
     </style>
     <script>
+        let imageCapture;
+        let track;
         // This is the idiomatic way to ensure that JQuery does not
         // execute until the page has loaded
         $(function(){
@@ -109,6 +126,8 @@
 
             $("#add-receipt").click(function(){
                 $("#addReceiptBox").show();
+                //$("#merchant:text").val('a');
+                //$("#amount:text").val(1);
             });
 
 
@@ -132,6 +151,74 @@
                 });
                 $("#addReceiptBox").hide();
             });
+
+            $("#take-pic-cancel").click(function(){
+                $("#vidwrap").hide();
+                track.stop();
+            });
+        });
+
+        function attachMediaStream(mediaStream) {
+            $('video')[0].srcObject = mediaStream;
+            // Saving the track allows us to capture a photo
+            track = mediaStream.getVideoTracks()[0];
+            imageCapture = new ImageCapture(track);
+        }
+
+        function startVideo() {
+            $("#vidwrap").show();
+            navigator.mediaDevices.getUserMedia({video: {facingMode: {exact: "environment"}}})
+                .then(attachMediaStream)
+                .catch(error => {
+                    navigator.mediaDevices.getUserMedia({video: true})
+                        .then(attachMediaStream)
+                        .catch(error => {
+                            console.log('you are fooked');
+                        })
+                })
+        }
+
+        function takeSnapshot() {
+
+            $("#vidwrap").hide();
+            // create a CANVAS element that is same size as the image
+            imageCapture.grabFrame()
+            .then(img => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                canvas.getContext('2d').drawImage(img, 0, 0);
+                const base64EncodedImageData = canvas.toDataURL('image/png').split(',')[1];
+                $.ajax({
+                    url: "/images",
+                    type: "POST",
+                    data: base64EncodedImageData,
+                    contentType: "text/plain",
+                    success: function(data) {
+                        console.log(data);
+                        $("#merchant:text").val(data.merchantName);
+                        $("#amount:text").val(data.amount);
+                    },
+                })
+//                .then(
+//                    response => {
+//                    $('video').after(`<div>got response: <pre>${JSON.stringify(response)}</pre></div>`);
+//                })
+//                .always(() => console.log('request complete'));
+
+                $("#addReceiptBox").show();
+
+                // For debugging, you can uncomment this to see the frame that was captured
+                //$('BODY').append(canvas);
+                track.stop();
+            });
+        }
+
+        $(function () {
+            $('#start-camera').on('click', startVideo);
+            //$('video').on('play', () => $('#take-pic').prop('disabled', false));
+            $('#take-pic').on('click', takeSnapshot);
         });
 
     </script>
@@ -141,14 +228,22 @@
 <DIV id="container">
     <h1>My receipts</h1>
     <div class="button" id="add-receipt">+</div>
+    <div class="button" id="start-camera">camera</div>
+
     <div id="addReceiptBox">
         <p><input style='height:20px;margin-left:10px;width:178px;background-color:orange' id='merchant' placeholder="merchant" type='text'></p>
         <p><input style='height:20px;margin-left:10px;width:178px;background-color:orange' id='amount' placeholder="amount" type='text'></p>
-        <button style='height:20px;margin-left:100px' id="cancel-receipt">cancel</button>
+        <button style='height:20px;margin-left:50px' id="cancel-receipt">cancel</button>
         <button style='height:20px' id="save-receipt">save</button>
     </div>
 
     <div id="receiptList">
+    </div>
+
+    <div id="vidwrap">
+        <video autoplay></video>
+        <button style='height:20px;margin-left:20px' id="take-pic-cancel">cancel</button>
+        <button style='height:20px' id="take-pic">snap</button>
     </div>
 </DIV>
 </body>
